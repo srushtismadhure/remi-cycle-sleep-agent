@@ -1,0 +1,8 @@
+{
+  "user_id": "demo_user_01",
+  "display_name": "Demo User",
+  "timezone": "America/Los_Angeles",
+  "preferred_wind_down_time": "21:40",
+  "voice_enabled": true,
+  "reminder_enabled": true
+}

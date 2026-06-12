@@ -1,0 +1,22 @@
+[
+  {
+    "title": "Cycle phase and sleep patterns",
+    "summary": "Sleep experience can vary across the menstrual cycle, and some people report more disruption during the late-luteal phase.",
+    "source_type": "mock"
+  },
+  {
+    "title": "Recovery and load signals",
+    "summary": "Changes in HRV and resting heart rate can offer general context about recovery and recent physiological load.",
+    "source_type": "mock"
+  },
+  {
+    "title": "Temperature context",
+    "summary": "Skin temperature trends may shift across cycle phases and can add context when viewed against a personal baseline.",
+    "source_type": "mock"
+  },
+  {
+    "title": "Wellness support only",
+    "summary": "Personalized routines are intended as general wellness support, not diagnosis, treatment, or a substitute for professional care.",
+    "source_type": "mock"
+  }
+]

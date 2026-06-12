@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Luteal Downshift",
+    "description": "A slower, cooler wind-down for higher-friction late-luteal nights.",
+    "duration_minutes": 22
+  },
+  {
+    "name": "Soft Landing",
+    "description": "A gentle transition from a busy day into a quieter evening.",
+    "duration_minutes": 18
+  },
+  {
+    "name": "Recovery Moon",
+    "description": "A recovery-forward routine for accumulated sleep load.",
+    "duration_minutes": 25
+  },
+  {
+    "name": "Light Drift",
+    "description": "A short, low-effort routine for calm, lower-risk nights.",
+    "duration_minutes": 12
+  }
+]

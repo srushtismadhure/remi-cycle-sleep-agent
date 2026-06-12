@@ -1,0 +1,19 @@
+{
+  "date": "2026-06-11",
+  "estimated_cycle_phase": "late_luteal",
+  "cycle_day": 23,
+  "hrv_rmssd": 31,
+  "baseline_hrv_rmssd": 44,
+  "resting_hr": 74,
+  "baseline_resting_hr": 67,
+  "skin_temp_delta_c": 0.42,
+  "sleep_debt_hours": 1.8,
+  "stress_score": 7,
+  "cramps": true,
+  "prior_sleep_quality": "poor",
+  "optional_health_context": {
+    "source": "synthetic",
+    "sleep_relevant_context": ["migraine history"],
+    "notes": "Synthetic context only. No PHI."
+  }
+}
