@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 
 import { CheckInCard } from "@/components/CheckInCard";
 import { RemiHero } from "@/components/RemiHero";
@@ -15,10 +14,16 @@ const MIN_LOADING_MS = 1200;
 const RESULT_SCROLL_DELAY_MS = 80;
 const RESULT_SCROLL_SETTLE_MS = 450;
 
-export function HomeExperience() {
+interface TonightExperienceProps {
+  initialResult: REMiAgentResult;
+}
+
+export function TonightExperience({
+  initialResult,
+}: TonightExperienceProps) {
   const [runState, setRunState] = useState<RunState>("idle");
-  const [result, setResult] = useState<REMiAgentResult | null>(null);
-  const resultRef = useRef<HTMLDivElement>(null);
+  const [result, setResult] = useState<REMiAgentResult>(initialResult);
+  const resultRef = useRef<HTMLElement>(null);
 
   async function runTonightPlan(checkIn?: CheckInData) {
     if (runState === "loading") {
@@ -26,7 +31,6 @@ export function HomeExperience() {
     }
 
     setRunState("loading");
-    setResult(null);
 
     try {
       const [response] = await Promise.all([
@@ -41,7 +45,9 @@ export function HomeExperience() {
         new Promise((resolve) => window.setTimeout(resolve, MIN_LOADING_MS)),
       ]);
 
-      if (!response.ok) throw new Error("REMi could not prepare your plan.");
+      if (!response.ok) {
+        throw new Error("REMi could not prepare your plan.");
+      }
 
       const payload = (await response.json()) as REMiAgentResult;
       setResult(payload);
@@ -58,7 +64,7 @@ export function HomeExperience() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden">
+    <>
       <RemiHero
         ctaLabel="Run Tonight's Protocol"
         ctaLoadingLabel="Reading tonight's signals..."
@@ -70,9 +76,8 @@ export function HomeExperience() {
         isCtaDisabled={runState === "loading"}
         isCtaLoading={runState === "loading"}
         onCta={() => runTonightPlan()}
-        riskLevel={result?.riskProfile.risk_level ?? "low"}
+        riskLevel={result.riskProfile.risk_level}
       />
-
       <div>
         <CheckInCard
           isSubmitting={runState === "loading"}
@@ -80,20 +85,9 @@ export function HomeExperience() {
           onSkip={() => runTonightPlan()}
         />
       </div>
-
-      <AnimatePresence>
-        {result && (
-          <motion.section
-            ref={resultRef}
-            initial={{ opacity: 0, y: 45, filter: "blur(12px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 0.75, ease: "easeOut" }}
-            className="results-surface relative mx-auto w-full max-w-none scroll-mt-0"
-          >
-            <ResultsView result={result} />
-          </motion.section>
-        )}
-      </AnimatePresence>
-    </main>
+      <section ref={resultRef}>
+        <ResultsView result={result} />
+      </section>
+    </>
   );
 }

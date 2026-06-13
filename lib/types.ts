@@ -1,4 +1,9 @@
 export type REMiRiskLevel = "low" | "medium" | "high";
+export type REMiHapticMode = "Calm Drift" | "Soft Wave" | "Deep Downshift";
+export type REMiRecommendationConfidence = "low" | "medium" | "high";
+export type REMiRecommendationBasis =
+  | "similar synthetic cases"
+  | "deterministic fallback";
 
 export interface REMiSignals {
   date: string;
@@ -26,6 +31,43 @@ export interface REMiRiskProfile {
   risk_drivers: string[];
 }
 
+export interface REMiBodyStateContext {
+  affect_state?: string;
+  appetite_0_5?: number;
+  bloating_0_5?: number;
+  cramps_0_5?: number;
+  cycle_day?: number;
+  cycle_phase?: string;
+  estrogen_e3g_ng_mL?: number;
+  fatigue_0_5?: number;
+  fitbit_sleep_score_0_100?: number;
+  headaches_0_5?: number;
+  hrv_delta_from_baseline?: number;
+  hrv_relative_label?: string;
+  lh_mIU_mL?: number;
+  minutes_asleep?: number;
+  mood_swing_0_5?: number;
+  pdg_ug_mL?: number;
+  resting_hr_delta_from_baseline?: number;
+  resting_hr_relative_label?: string;
+  restlessness_score?: number;
+  sleep_debt_hours?: number;
+  sleep_debt_label?: string;
+  sleep_efficiency_pct?: number;
+  sleep_issue_0_5?: number;
+  sleep_risk_score_0_100?: number;
+  skin_temperature_delta_c?: number;
+  skin_temperature_relative_label?: string;
+  stress_0_10?: number;
+}
+
+export interface RemiTonightResult {
+  bodyState: REMiBodyStateContext;
+  demoRecord?: REMiDemoRecord;
+  riskProfile: REMiRiskProfile;
+  signals: REMiSignals;
+}
+
 export interface REMiSleepPlan {
   summary: string;
   protocol_name: string;
@@ -36,6 +78,29 @@ export interface REMiSleepPlan {
   protocol_steps: string[];
   reminder_text: string;
   safety_note: string;
+}
+
+export interface REMiWaveRecommendation {
+  sleep_friction_score: number;
+  friction_level: "Low" | "Medium" | "High";
+  haptic_mode: REMiHapticMode;
+  breath_rhythm_per_min: number;
+  haptic_pulse_per_min: number;
+  haptic_duration_min: number;
+  haptic_intensity: "Low" | "Low–Medium" | "Medium";
+  drivers: string[];
+  spot_message: string;
+  moon_body_summary: string;
+  confidence: REMiRecommendationConfidence;
+  matched_case_count: number;
+  similarity_summary: string;
+  recommendation_basis: REMiRecommendationBasis;
+}
+
+export interface REMiSimilarCasePreview {
+  hapticMode: REMiHapticMode;
+  recordId: string;
+  similarityScore: number;
 }
 
 export interface REMiEvidenceItem {
@@ -57,6 +122,15 @@ export interface REMiVoiceNote {
   status: "mock_generated";
 }
 
+export interface REMiDemoRecord {
+  day_in_study?: number;
+  record_key: string;
+  source: "synthetic";
+  study_interval?: string;
+  synthetic_date: string;
+  user_id: string;
+}
+
 export interface REMiUser {
   user_id: string;
   display_name: string;
@@ -67,9 +141,15 @@ export interface REMiUser {
 }
 
 export interface REMiAgentResult {
+  bodyState?: REMiBodyStateContext;
+  demoRecord?: REMiDemoRecord;
   signals: REMiSignals;
   riskProfile: REMiRiskProfile;
   plan: REMiSleepPlan;
+  recommendation?: REMiWaveRecommendation;
+  recommendationBasis?: string;
+  disclosure?: string;
+  matches?: REMiSimilarCasePreview[];
   evidence: REMiEvidenceItem[];
   actions: REMiAction[];
   voiceNote: REMiVoiceNote;

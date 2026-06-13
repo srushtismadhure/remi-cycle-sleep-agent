@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 
+import { SpotProvider } from "@/components/SpotProvider";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "REMi | Tonight, understood",
+  title: "REMi | Rhythm. Rest.",
   description:
-    "A cycle-aware sleep guide that turns body signals into bedtime actions.",
+    "Sleep support designed for women's biology. REMi interprets hormonal rhythms, recovery signals, and cycle patterns to personalize how you wind down each night.",
 };
 
 export default function RootLayout({
@@ -15,7 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <SpotProvider>{children}</SpotProvider>
+      </body>
     </html>
   );
 }
