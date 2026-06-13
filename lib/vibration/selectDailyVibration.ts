@@ -29,43 +29,7 @@ export function selectDailyVibration(
   const dailyScore = clampDailyScore(dailyData.dailyScore);
   const restlessness = dailyData.subjective?.restlessness0To5 ?? 0;
 
-  if (hasSelectedTag(dailyData, "Structured breathing")) {
-    return {
-      pattern: VIBRATION_PATTERNS.box_breathing,
-      reason:
-        "You selected structured breathing, so tonight's vibration uses an even guided rhythm.",
-      source: "daily_score_rule",
-    };
-  }
-
-  if (dailyScore >= 70) {
-    if (restlessness >= 4 || hasSelectedTag(dailyData, "Restless")) {
-      return {
-        pattern: VIBRATION_PATTERNS.grounding_pulse,
-        reason:
-          "Your REMi daily score is elevated and tonight looks physically restless, so REMi is using a grounding pulse.",
-        source: "daily_score_rule",
-      };
-    }
-
-    return {
-      pattern: VIBRATION_PATTERNS.slow_exhale,
-      reason:
-        "Your REMi daily score is elevated, so tonight's vibration uses a gentle longer-exhale rhythm.",
-      source: "daily_score_rule",
-    };
-  }
-
-  if (dailyScore >= 40) {
-    return {
-      pattern: VIBRATION_PATTERNS.lunar_breathing,
-      reason:
-        "Your REMi daily score suggests a moderate wind-down need, so tonight's vibration uses a gentle breathing rhythm.",
-      source: "daily_score_rule",
-    };
-  }
-
-  if (hasSelectedTag(dailyData, "Calm")) {
+  if (hasSelectedTag(dailyData, "Calm") && dailyScore < 35) {
     return {
       pattern: VIBRATION_PATTERNS.no_vibration,
       reason: "Your signals look calm tonight, so REMi is not suggesting vibration.",
@@ -73,10 +37,39 @@ export function selectDailyVibration(
     };
   }
 
+  if (hasSelectedTag(dailyData, "Structured breathing")) {
+    return {
+      pattern: VIBRATION_PATTERNS.calm_drift,
+      reason:
+        "You selected structured breathing, so tonight's session uses a slow, even rhythm.",
+      source: "daily_score_rule",
+    };
+  }
+
+  if (dailyScore >= 70) {
+    return {
+      pattern: VIBRATION_PATTERNS.deep_downshift,
+      reason:
+        restlessness >= 4 || hasSelectedTag(dailyData, "Restless")
+          ? "Your REMi daily score is elevated and tonight looks physically restless, so REMi is using its longest, most gradual downshift."
+          : "Your REMi daily score is elevated, so tonight's session uses REMi's deepest, slowest downshift rhythm.",
+      source: "daily_score_rule",
+    };
+  }
+
+  if (dailyScore >= 40) {
+    return {
+      pattern: VIBRATION_PATTERNS.calm_drift,
+      reason:
+        "Your REMi daily score suggests a moderate wind-down need, so tonight's session uses a slow, balanced drift.",
+      source: "daily_score_rule",
+    };
+  }
+
   return {
-    pattern: VIBRATION_PATTERNS.soft_pulse,
+    pattern: VIBRATION_PATTERNS.soft_wave,
     reason:
-      "Your signals look relatively calm tonight, so only a very gentle settling pulse is suggested.",
+      "Your signals look relatively steady tonight, so only a light, spacious soft wave is suggested.",
     source: "daily_score_rule",
   };
 }

@@ -1,57 +1,81 @@
+import type { REMiHapticMode } from "@/lib/types";
+
 export type VibrationPatternId =
-  | "soft_pulse"
-  | "lunar_breathing"
-  | "slow_exhale"
-  | "grounding_pulse"
-  | "box_breathing"
+  | "soft_wave"
+  | "calm_drift"
+  | "deep_downshift"
   | "no_vibration";
 
-export type VibrationPatternDefinition = {
+type VibrationPatternSeed = {
   id: VibrationPatternId;
-  name: string;
+  name: REMiHapticMode | "No Vibration Needed";
   description: string;
   // Arrays alternate between vibration duration and pause duration in milliseconds.
   pattern: number[];
+  repeatCount: number;
 };
+
+export type VibrationPatternDefinition = VibrationPatternSeed & {
+  cycleDurationMs: number;
+  estimatedDurationMs: number;
+};
+
+export function getPatternCycleDuration(pattern: number[]) {
+  return pattern.reduce((total, duration) => total + duration, 0);
+}
+
+export function formatVibrationDuration(durationMs: number) {
+  const totalSeconds = Math.max(0, Math.round(durationMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  if (minutes === 0) {
+    return `${seconds}s`;
+  }
+
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function definePattern(seed: VibrationPatternSeed): VibrationPatternDefinition {
+  const cycleDurationMs = getPatternCycleDuration(seed.pattern);
+
+  return {
+    ...seed,
+    cycleDurationMs,
+    estimatedDurationMs: cycleDurationMs * seed.repeatCount,
+  };
+}
 
 export const VIBRATION_PATTERNS: Record<
   VibrationPatternId,
   VibrationPatternDefinition
 > = {
-  soft_pulse: {
-    id: "soft_pulse",
-    name: "Soft Pulse",
-    description: "A brief, gentle settling cue.",
-    pattern: [80],
-  },
-  lunar_breathing: {
-    id: "lunar_breathing",
-    name: "Lunar Breathing",
-    description: "A gentle breathing rhythm with a longer exhale.",
-    pattern: [90, 3910, 90, 180, 90, 5620],
-  },
-  slow_exhale: {
-    id: "slow_exhale",
-    name: "Slow Exhale",
-    description: "A calm tactile rhythm emphasizing a longer exhale.",
-    pattern: [90, 3910, 90, 180, 90, 6620],
-  },
-  grounding_pulse: {
-    id: "grounding_pulse",
-    name: "Grounding Pulse",
-    description: "Three gently spaced pulses for physical restlessness.",
-    pattern: [80, 250, 80, 400, 80],
-  },
-  box_breathing: {
-    id: "box_breathing",
-    name: "Box Breathing",
-    description: "An evenly timed structured breathing rhythm.",
-    pattern: [80, 3920, 80, 3920, 80, 3920, 80, 3920],
-  },
-  no_vibration: {
+  soft_wave: definePattern({
+    id: "soft_wave",
+    name: "Soft Wave",
+    description: "Light, spacious pulses with generous breathing room between cues.",
+    pattern: [180, 1800, 180, 2200],
+    repeatCount: 12,
+  }),
+  calm_drift: definePattern({
+    id: "calm_drift",
+    name: "Calm Drift",
+    description: "A slower, balanced rhythm that repeats without rushing the body.",
+    pattern: [260, 1400, 260, 2200],
+    repeatCount: 20,
+  }),
+  deep_downshift: definePattern({
+    id: "deep_downshift",
+    name: "Deep Downshift",
+    description: "The longest, most gradual pattern with deeper pauses between pulses.",
+    pattern: [350, 1700, 350, 2800],
+    repeatCount: 20,
+  }),
+  no_vibration: definePattern({
     id: "no_vibration",
     name: "No Vibration Needed",
     description: "Your current signals suggest a calm night.",
     pattern: [],
-  },
+    repeatCount: 0,
+  }),
 };
