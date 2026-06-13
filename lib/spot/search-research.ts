@@ -1,5 +1,6 @@
 import { type TavilySearchResponse } from "@tavily/core";
 
+import { normalizeSpotQuestion } from "@/lib/spot/classify-question";
 import { getTavilyClient } from "@/lib/server/tavily";
 import {
   EXCLUDED_DOMAINS,
@@ -53,23 +54,79 @@ function getStatusCode(error: unknown) {
 const researchCache = new Map<string, { expiresAt: number; value: CachedResearchResult }>();
 const pendingSearches = new Map<string, Promise<CachedResearchResult>>();
 
+const QUERY_STOP_WORDS = new Set([
+  "a",
+  "about",
+  "and",
+  "are",
+  "can",
+  "could",
+  "does",
+  "how",
+  "in",
+  "is",
+  "it",
+  "my",
+  "of",
+  "research",
+  "say",
+  "the",
+  "this",
+  "to",
+  "tonight",
+  "what",
+  "why",
+]);
+
+function buildFallbackQuery(question: string) {
+  const normalized = normalizeSpotQuestion(question);
+  const keywords = normalized
+    .split(" ")
+    .filter(
+      (term) => term && term.length > 2 && !QUERY_STOP_WORDS.has(term),
+    );
+
+  const compactTerms = new Set(keywords);
+
+  if (
+    normalized.includes("progesterone") ||
+    normalized.includes("estrogen") ||
+    normalized.includes("lh") ||
+    normalized.includes("fsh") ||
+    normalized.includes("pdg") ||
+    normalized.includes("e3g")
+  ) {
+    compactTerms.add("menstrual");
+    compactTerms.add("cycle");
+    compactTerms.add("women");
+  }
+
+  compactTerms.add("review");
+
+  return [...compactTerms].join(" ");
+}
+
+async function executeTavilySearch(query: string) {
+  return getTavilyClient().search(query, {
+    topic: "general",
+    searchDepth: process.env.NODE_ENV === "production" ? "advanced" : "basic",
+    maxResults: 6,
+    chunksPerSource: 2,
+    includeAnswer: "basic",
+    includeRawContent: false,
+    includeImages: false,
+    includeDomains: [...TRUSTED_RESEARCH_DOMAINS],
+    excludeDomains: [...EXCLUDED_DOMAINS],
+    autoParameters: false,
+    timeout: 12_000,
+  });
+}
+
 async function runSearch(query: string, question: string): Promise<CachedResearchResult> {
   let response: TavilySearchResponse;
 
   try {
-    response = await getTavilyClient().search(query, {
-      topic: "general",
-      searchDepth: process.env.NODE_ENV === "production" ? "advanced" : "basic",
-      maxResults: 6,
-      chunksPerSource: 2,
-      includeAnswer: "basic",
-      includeRawContent: false,
-      includeImages: false,
-      includeDomains: [...TRUSTED_RESEARCH_DOMAINS],
-      excludeDomains: [...EXCLUDED_DOMAINS],
-      autoParameters: false,
-      timeout: 12_000,
-    });
+    response = await executeTavilySearch(query);
   } catch (error) {
     if (
       error instanceof Error &&
@@ -126,7 +183,20 @@ async function runSearch(query: string, question: string): Promise<CachedResearc
     );
   }
 
-  const sources = filterResearchResults(question, response.results);
+  let sources = filterResearchResults(question, response.results);
+
+  if (sources.length === 0) {
+    const fallbackQuery = buildFallbackQuery(question);
+
+    if (fallbackQuery && fallbackQuery !== query) {
+      const fallbackResponse = await executeTavilySearch(fallbackQuery);
+
+      if (fallbackResponse && Array.isArray(fallbackResponse.results)) {
+        sources = filterResearchResults(question, fallbackResponse.results);
+        response = fallbackResponse;
+      }
+    }
+  }
 
   if (sources.length === 0) {
     throw new SpotResearchError(
